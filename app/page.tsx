@@ -32,6 +32,7 @@ export default function HomePage() {
       localStorage.setItem('playerId', playerId)
       localStorage.setItem('nickname', nickname.trim())
       localStorage.setItem('roomCode', code)
+      await new Promise(r => setTimeout(r, 500))
       router.push(`/room/${code}`)
     } catch (e: any) {
       setError(e.message || 'Failed to create room')
