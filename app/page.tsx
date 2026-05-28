@@ -22,17 +22,9 @@ export default function HomePage() {
     setLoading(true); setError('')
     try {
       const code = generateCode()
-      // Create host player first to get an id
       const playerId = crypto.randomUUID()
       await createRoom(code, playerId)
-      // Create player doc with known id
-      const { doc, setDoc, collection } = await import('firebase/firestore')
-      const { db } = await import('@/lib/firebase')
-      const playerRef = doc(db, 'rooms', code, 'players', playerId)
-      await setDoc(playerRef, {
-        id: playerId, roomCode: code, nickname: nickname.trim(),
-        isHost: true, isReady: true, score: 0, joinedAt: Date.now(),
-      })
+      await createPlayer(code, nickname.trim(), true, playerId)
       await createQuestions(code)
       localStorage.setItem('playerId', playerId)
       localStorage.setItem('nickname', nickname.trim())

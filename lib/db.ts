@@ -35,8 +35,10 @@ export async function updateRoom(code: string, data: Partial<Room>) {
 
 // ── Players ───────────────────────────────────────────────────────────────
 
-export async function createPlayer(roomCode: string, nickname: string, isHost: boolean): Promise<string> {
-  const ref = doc(collection(db, 'rooms', roomCode, 'players'))
+export async function createPlayer(roomCode: string, nickname: string, isHost: boolean, presetId?: string): Promise<string> {
+  const ref = presetId
+    ? doc(db, 'rooms', roomCode, 'players', presetId)
+    : doc(collection(db, 'rooms', roomCode, 'players'))
   await setDoc(ref, {
     id: ref.id,
     roomCode,
