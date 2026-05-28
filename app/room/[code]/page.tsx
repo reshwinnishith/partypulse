@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { onSnapshot, doc } from 'firebase/firestore'
+import { onSnapshot, doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { subscribePlayers, subscribeChat, getQuestions } from '@/lib/db'
 import type { Room, Player, Question, ChatMessage } from '@/lib/firebase'
@@ -23,6 +23,16 @@ export default function RoomPage() {
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
+    const testRead = async () => {
+      try {
+        console.log('testing direct getDoc...')
+        const snap = await getDoc(doc(db, 'rooms', code))
+        console.log('getDoc result - exists:', snap.exists(), 'data:', JSON.stringify(snap.data()))
+      } catch (err: any) {
+        console.error('getDoc error:', err.message, err.code)
+      }
+    }
+    testRead()
     const id = localStorage.getItem('playerId') || ''
     const storedCode = localStorage.getItem('roomCode') || ''
     if (!id || storedCode !== code) { router.push('/'); return }
