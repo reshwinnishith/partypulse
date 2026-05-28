@@ -13,6 +13,7 @@ import ResultsView from '@/components/ResultsView'
 
 export default function RoomPage() {
   const { code } = useParams<{ code: string }>()
+  console.log('[room page] component mounted, code:', code)
   const router = useRouter()
 
   const [room, setRoom] = useState<Room | null>(null)
