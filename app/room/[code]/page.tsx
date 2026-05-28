@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { onSnapshot, doc, getDoc } from 'firebase/firestore'
+import { onSnapshot, doc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { subscribePlayers, subscribeChat, getQuestions } from '@/lib/db'
 import type { Room, Player, Question, ChatMessage } from '@/lib/firebase'
@@ -23,61 +23,63 @@ export default function RoomPage() {
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    const testRead = async () => {
-      try {
-        console.log('testing direct getDoc...')
-        const snap = await getDoc(doc(db, 'rooms', code))
-        console.log('getDoc result - exists:', snap.exists(), 'data:', JSON.stringify(snap.data()))
-      } catch (err: any) {
-        console.error('getDoc error:', err.message, err.code)
-      }
-    }
-    testRead()
+    console.log('[room] myId effect, code:', code)
     const id = localStorage.getItem('playerId') || ''
     const storedCode = localStorage.getItem('roomCode') || ''
-    if (!id || storedCode !== code) { router.push('/'); return }
+    console.log('[room] playerId:', id, 'storedCode:', storedCode)
+    if (!id || storedCode !== code) {
+      console.log('[room] no valid session, redirecting home')
+      router.push('/')
+      return
+    }
     setMyId(id)
   }, [code, router])
 
-  // Subscribe to room
   useEffect(() => {
-    if (!code || !myId) return
-    let attempts = 0
-    const trySubscribe = () => {
-      const unsub = onSnapshot(doc(db, 'rooms', code), (snapshot) => {
-        if (!snapshot.exists()) {
-          attempts++
-          if (attempts >= 10) {
-            setLoaded(true)
-            setRoom(null)
-          }
-          return
-        }
-        setLoaded(true)
-        setRoom(snapshot.data() as Room)
-      })
-      return unsub
+    if (!code || !myId) {
+      console.log('[room] skipping subscription, code:', code, 'myId:', myId)
+      return
     }
-    const unsub = trySubscribe()
-    return () => unsub()
+    console.log('[room] starting onSnapshot for rooms/', code)
+    const unsub = onSnapshot(
+      doc(db, 'rooms', code),
+      (snapshot) => {
+        console.log('[room] snapshot received, exists:', snapshot.exists(), 'data:', JSON.stringify(snapshot.data()))
+        setLoaded(true)
+        setRoom(snapshot.exists() ? (snapshot.data() as Room) : null)
+      },
+      (err) => {
+        console.error('[room] onSnapshot error:', err.message, err.code)
+        setLoaded(true)
+        setRoom(null)
+      }
+    )
+    return () => {
+      console.log('[room] unsubscribing room snapshot')
+      unsub()
+    }
   }, [code, myId])
 
-  // Subscribe to players
   useEffect(() => {
     if (!code) return
-    return subscribePlayers(code, setPlayers)
+    console.log('[room] subscribing players for', code)
+    return subscribePlayers(code, (p) => {
+      console.log('[room] players update, count:', p.length)
+      setPlayers(p)
+    })
   }, [code])
 
-  // Subscribe to chat
   useEffect(() => {
     if (!code) return
     return subscribeChat(code, setChat)
   }, [code])
 
-  // Load questions once
   useEffect(() => {
     if (!code) return
-    getQuestions(code).then(setQuestions)
+    getQuestions(code).then((q) => {
+      console.log('[room] questions loaded, count:', q.length)
+      setQuestions(q)
+    })
   }, [code])
 
   const me = players.find(p => p.id === myId)
