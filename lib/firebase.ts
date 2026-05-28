@@ -16,7 +16,6 @@ let db: any
 try {
   db = initializeFirestore(app, {
     experimentalForceLongPolling: true,
-    useFetchStreams: false,
   })
 } catch (e) {
   db = getFirestore(app)
