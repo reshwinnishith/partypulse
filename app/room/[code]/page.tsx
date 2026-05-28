@@ -31,17 +31,26 @@ export default function RoomPage() {
 
   // Subscribe to room
   useEffect(() => {
-    if (!code) return
-    const unsub = onSnapshot(doc(db, 'rooms', code), (snapshot) => {
-      setLoaded(true)
-      if (!snapshot.exists()) {
-        setRoom(null)
-      } else {
+    if (!code || !myId) return
+    let attempts = 0
+    const trySubscribe = () => {
+      const unsub = onSnapshot(doc(db, 'rooms', code), (snapshot) => {
+        if (!snapshot.exists()) {
+          attempts++
+          if (attempts >= 10) {
+            setLoaded(true)
+            setRoom(null)
+          }
+          return
+        }
+        setLoaded(true)
         setRoom(snapshot.data() as Room)
-      }
-    })
+      })
+      return unsub
+    }
+    const unsub = trySubscribe()
     return () => unsub()
-  }, [code])
+  }, [code, myId])
 
   // Subscribe to players
   useEffect(() => {

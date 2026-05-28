@@ -29,10 +29,12 @@ export default function HomePage() {
       console.log('player created')
       await createQuestions(code)
       console.log('questions created')
+      const verifyRoom = await getRoom(code)
+      console.log('verify room exists before redirect:', verifyRoom)
       localStorage.setItem('playerId', playerId)
       localStorage.setItem('nickname', nickname.trim())
       localStorage.setItem('roomCode', code)
-      await new Promise(r => setTimeout(r, 500))
+      await new Promise(r => setTimeout(r, 1500))
       router.push(`/room/${code}`)
     } catch (e: any) {
       setError(e.message || 'Failed to create room')
