@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { castVote, subscribeVotes, updateRoom, updatePlayer } from '@/lib/db'
+import { castVote, subscribeVotes, updateRoom } from '@/lib/db'
 import type { Room, Player, Question, Vote } from '@/lib/firebase'
 
 type Props = {
@@ -66,13 +66,6 @@ export default function GameView({ room, players, questions, myId, code }: Props
   async function handleNext() {
     if (!isHost || advancing) return
     setAdvancing(true)
-
-    // Add votes to scores
-    for (const [pid, count] of Object.entries(voteCounts)) {
-      const player = players.find(p => p.id === pid)
-      if (player) await updatePlayer(code, pid, { score: player.score + count })
-    }
-
     if (room.currentQuestion + 1 >= totalQ) {
       await updateRoom(code, { status: 'results' })
     } else {
