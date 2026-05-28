@@ -24,15 +24,9 @@ export default function RoomPage() {
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    console.log('[room] myId effect, code:', code)
+    if (!code) return
     const id = localStorage.getItem('playerId') || ''
-    const storedCode = localStorage.getItem('roomCode') || ''
-    console.log('[room] playerId:', id, 'storedCode:', storedCode)
-    if (!id || storedCode !== code) {
-      console.log('[room] no valid session, redirecting home')
-      router.push('/')
-      return
-    }
+    if (!id) { router.push('/'); return }
     setMyId(id)
   }, [code, router])
 
